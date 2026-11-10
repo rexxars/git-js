@@ -11,12 +11,17 @@ export function abortPlugin(signal: SimpleGitOptions['abort']) {
       type: 'spawn.after',
       action(_data, context) {
          function kill() {
-            context.kill(new GitPluginError(undefined, 'abort', 'Abort signal received'));
+            context.kill(new GitPluginError(undefined, 'abort', 'Abort signal received'), true);
          }
 
          signal.addEventListener('abort', kill);
 
          context.spawned.on('close', () => signal.removeEventListener('abort', kill));
+
+         // The caller can abort from an output handler before this listener is attached.
+         if (signal.aborted) {
+            kill();
+         }
       },
    };
 

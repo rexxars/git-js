@@ -13,6 +13,7 @@ import type {
    SimpleGitTask,
 } from '../types';
 import { callTaskParser, first, GitOutputStreams, objectToString } from '../utils';
+import { killProcess } from './kill-process';
 import type { Scheduler } from './scheduler';
 import { TasksPendingQueue } from './tasks-pending-queue';
 
@@ -188,6 +189,7 @@ export class GitExecutorChain implements SimpleGitExecutor {
       return new Promise((done) => {
          const stdOut: Buffer[] = [];
          const stdErr: Buffer[] = [];
+         let killing = false;
 
          logger.info(`%s %o`, command, args);
          logger('%O', spawnOptions);
@@ -238,13 +240,14 @@ export class GitExecutorChain implements SimpleGitExecutor {
                   rejection: rejection || reason,
                });
             },
-            kill(reason: Error) {
-               if (spawned.killed) {
+            kill(reason: Error, killChildren = false) {
+               if (killing || spawned.killed) {
                   return;
                }
 
+               killing = true;
                rejection = reason;
-               spawned.kill('SIGINT');
+               killProcess(spawned, killChildren);
             },
          });
       });

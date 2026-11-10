@@ -1,7 +1,8 @@
 ## Using an AbortController to terminate tasks
 
-The easiest way to send a `SIGKILL` to the `git` child processes created by `simple-git` is to use an `AbortController`
-in the constructor options for `simpleGit`:
+Use an `AbortController` in the constructor options for `simpleGit` to cancel Git commands and their transport helpers:
+
+Cancellation stops Git's transport helpers before terminating Git itself. On POSIX, `simple-git` uses `ps` to find descendant processes and sends them `SIGINT`. On Windows, it uses `taskkill /T /F` to terminate the process tree. If process lookup or `taskkill` fails, it falls back to signalling the Git process directly. Git stays in its existing session, so supplying an abort signal does not change terminal authentication.
 
 ```typescript
 import { simpleGit, GitPluginError, type SimpleGit } from 'simple-git';

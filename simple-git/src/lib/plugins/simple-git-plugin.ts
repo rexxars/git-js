@@ -37,7 +37,7 @@ export interface SimpleGitPluginTypes {
       context: SimpleGitTaskPluginContext & {
          spawned: ChildProcess;
          close(exitCode: number, reason?: Error): void;
-         kill(reason: Error): void;
+         kill(reason: Error, killChildren?: boolean): void;
       };
    };
    'task.error': {
